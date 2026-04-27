@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: "Raiser's Edge"
 source: "docs/integrations/raisers-edge.html"
 anchor: "raisers-edge"
 ---

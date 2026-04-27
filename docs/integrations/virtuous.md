@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: "Virtuous"
 source: "docs/integrations/virtuous.html"
 anchor: "virtuous"
 ---

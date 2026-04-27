@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: "Slack"
 source: "docs/integrations/slack.html"
 anchor: "slack"
 ---

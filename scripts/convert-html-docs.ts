@@ -105,15 +105,17 @@ function convertSection(opts: {
   slug: string;
   source: SourceFile;
   outFile: string;
+  fallbackTitle?: string;
 }) {
-  const { $, sectionEl, slug, source, outFile } = opts;
+  const { $, sectionEl, slug, source, outFile, fallbackTitle } = opts;
 
   // Prefer the page's <h1> for single-section pages (integration sub-pages
-  // wrap their whole body and have one top-level h1), otherwise fall back to
-  // the section's first <h2>.
+  // wrap their whole body and have one top-level h1), then a fallback title
+  // captured from `.header` before it was stripped, then the section's <h2>.
   const h1 = sectionEl.find('h1').first();
   const h2 = sectionEl.find('h2').first();
-  const title = (h1.text().trim() || h2.text().trim()) || slug;
+  const title =
+    h1.text().trim() || fallbackTitle?.trim() || h2.text().trim() || slug;
 
   const html = $.html(sectionEl);
   let md = turndown.turndown(html).trim();
@@ -139,6 +141,16 @@ function convertFile(source: SourceFile) {
 
   const html = readFileSync(fullPath, 'utf8');
   const $ = cheerio.load(html);
+
+  // Drop in-h1 status badges (e.g. <span class="badge">In Progress</span>)
+  // before reading the title so they don't pollute the doc title.
+  $('.header h1 .badge').remove();
+
+  // Capture the page-level title from `.header h1` BEFORE we strip it. The
+  // integration sub-pages put their canonical name there (e.g. "Salesforce")
+  // and tag a generic "Overview" h2 inside the body, so the header h1 is the
+  // best title to surface.
+  const pageTitle = $('.header h1').first().text().trim();
 
   // Strip elements we never want in MD output.
   $('script, style, nav, header, footer, .header, .sidebar, .breadcrumb, .version-select, .copy-btn, .badge').remove();
@@ -188,6 +200,7 @@ function convertFile(source: SourceFile) {
       slug: source.singleSectionSlug,
       source,
       outFile,
+      fallbackTitle: pageTitle,
     });
     count = 1;
   } else {

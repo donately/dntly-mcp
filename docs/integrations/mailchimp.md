@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: "Mailchimp"
 source: "docs/integrations/mailchimp.html"
 anchor: "mailchimp"
 ---

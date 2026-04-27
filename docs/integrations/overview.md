@@ -1,5 +1,5 @@
 ---
-title: "How It Works"
+title: "Native Integrations"
 source: "docs/integrations.html"
 anchor: "overview"
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Overview"
+title: "HubSpot"
 source: "docs/integrations/hubspot.html"
 anchor: "hubspot"
 ---
