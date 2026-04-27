@@ -1,11 +1,20 @@
 /**
- * One-off converter: dntly-developer-hub HTML pages → Markdown chunks.
+ * Bootstrap script: dntly-developer-hub HTML → canonical Markdown corpus.
  *
  * Each `<div class="doc-section" id="X">` becomes a single Markdown file at
- * `docs/<section>/<id>.md` with frontmatter holding the source path, title, and
- * anchor. The output is the source-of-truth for the MCP server.
+ * `dntly-developer-hub/docs/markdown/<section>/<id>.md` with frontmatter
+ * holding the source path, title, and anchor. The dev-hub `docs/markdown/`
+ * directory is the source-of-truth for the MCP corpus. Running this script
+ * regenerates the corpus from the canonical HTML.
  *
- * Run: pnpm convert-docs   (or)   npm run convert-docs
+ * Day-to-day, prefer editing the Markdown directly in dev-hub; this script
+ * only matters when the underlying HTML changes and you want to bring MD
+ * back into sync.
+ *
+ * After running this, run `npm run sync-docs` to pull the result into
+ * `dntly-mcp/docs/` so the MCP server picks it up.
+ *
+ * Run: npm run rebuild-corpus
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
@@ -20,7 +29,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const REPO_ROOT = resolve(__dirname, '..');
 const HUB_ROOT = resolve(REPO_ROOT, '../../dntly-developer-hub/git-repo');
-const DOCS_OUT = join(REPO_ROOT, 'docs');
+// Canonical MD lives in dev-hub now, not in this repo.
+const DOCS_OUT = join(HUB_ROOT, 'docs', 'markdown');
 
 type SourceFile = {
   /** Path relative to HUB_ROOT */

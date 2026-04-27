@@ -57,7 +57,7 @@ when you query it.
 ## Repository layout
 
 ```
-docs/                Markdown source-of-truth, organized by surface
+docs/                Build artifact — synced from dev-hub. DO NOT EDIT.
   api/               /v2 REST API reference (one file per resource)
   form/              dntly-form embeddable donation form
   components/        dntly-components data-attribute UI library
@@ -68,21 +68,29 @@ src/
   server-http.ts     Streamable HTTP entrypoint (Railway)
   docs.ts            doc loader + in-memory keyword search
 scripts/
-  convert-html-docs.ts  One-off: dntly-developer-hub HTML → docs/*.md
+  sync-docs.ts          dntly-developer-hub MD → docs/ (run before publish)
+  convert-html-docs.ts  HTML → MD bootstrap (writes into dev-hub)
 ```
 
 ## Updating the docs
 
-The dev hub (`~/Sites/dntly-developer-hub/git-repo`) is currently the
-public-facing doc site. To regenerate `docs/` from it:
+The canonical Markdown corpus lives in **dntly-developer-hub** at
+[`docs/markdown/`](../../dntly-developer-hub/git-repo/docs/markdown/), not in
+this repo. To make a doc edit:
 
-```bash
-npm install
-npm run convert-docs
-```
+1. Edit the Markdown file in dev-hub (`~/Sites/dntly-developer-hub/git-repo/docs/markdown/<area>/<slug>.md`).
+2. Commit the dev-hub change.
+3. From this repo, run `npm run sync-docs` to copy the latest snapshot into `docs/`.
+4. Commit the resulting `docs/` change here.
+5. Push both repos.
 
-Long-term, the goal is to flip the source-of-truth: edit Markdown here, and
-have the hub render from these files. The conversion script is the bootstrap.
+`npm publish` runs `sync-docs` automatically via `prepublishOnly`, so the
+published npm tarball always reflects the latest dev-hub corpus.
+
+If the underlying HTML in dev-hub changes (rare — that's the human-readable
+docs site), regenerate the canonical Markdown with `npm run rebuild-corpus`.
+That writes `docs/markdown/` in dev-hub from its HTML; commit dev-hub, then
+sync back here.
 
 ## Development
 

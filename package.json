@@ -41,9 +41,10 @@
     "start:stdio": "node dist/server.js",
     "dev": "tsx watch src/server-http.ts",
     "dev:stdio": "tsx watch src/server.ts",
-    "convert-docs": "tsx scripts/convert-html-docs.ts",
+    "sync-docs": "tsx scripts/sync-docs.ts",
+    "rebuild-corpus": "tsx scripts/convert-html-docs.ts",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run sync-docs && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
