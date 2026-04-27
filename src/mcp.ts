@@ -29,7 +29,7 @@ function formatSearchResult(result: ReturnType<typeof searchDocs>[number]): stri
 export function createServer(): McpServer {
   const server = new McpServer({
     name: 'dntly-mcp',
-    version: '0.1.0',
+    version: '0.1.1',
   });
 
   server.registerTool(
@@ -38,6 +38,7 @@ export function createServer(): McpServer {
       title: 'Search Donately developer docs',
       description:
         'Keyword search across the Donately developer documentation (API reference, embeddable form, components library, integration guides). Returns the top-ranked matches with title, doc path, and a snippet. Follow up with `get_doc` to read a full match.',
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       inputSchema: {
         query: z
           .string()
@@ -75,6 +76,7 @@ export function createServer(): McpServer {
       title: 'Get a Donately developer doc',
       description:
         'Fetch the full Markdown body of a Donately developer doc by path. Paths look like `api/donations`, `form/embedding`, `components/campaign-list`, `integrations/stripe`. Use `search_docs` or `list_docs` to discover paths.',
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       inputSchema: {
         path: z
           .string()
@@ -106,6 +108,7 @@ export function createServer(): McpServer {
       title: 'List Donately developer docs',
       description:
         'List every available Donately developer doc, optionally filtered by category. Use the returned paths with `get_doc`.',
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       inputSchema: {
         category: z
           .enum(['api', 'form', 'components', 'integrations'])
