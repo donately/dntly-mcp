@@ -81,7 +81,9 @@ export function loadDocs(): Doc[] {
       source: fm.source ?? '',
       anchor: fm.anchor ?? slug,
       body,
-      searchHaystack: (fm.title + ' ' + body).toLowerCase(),
+      // Include slug + path so a query like "pagination" hits api/pagination
+      // even if the body is short on the word.
+      searchHaystack: (slug + ' ' + path + ' ' + fm.title + ' ' + body).toLowerCase(),
     };
   });
   // Stable ordering: category then slug. Makes list output predictable.
@@ -102,11 +104,22 @@ export interface SearchResult {
   snippet: string;
 }
 
+// Common English words we don't want users' queries to be gated on. Keeps a
+// query like "how do I pagination" from being dropped if the doc body lacks
+// "how" or "do".
+const STOP_WORDS = new Set([
+  'a', 'all', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'by', 'can', 'do',
+  'does', 'for', 'from', 'get', 'has', 'have', 'how', 'i', 'if', 'in', 'into',
+  'is', 'it', 'its', 'me', 'my', 'of', 'on', 'or', 'see', 'so', 'some', 'than',
+  'the', 'this', 'that', 'to', 'use', 'via', 'was', 'were', 'what', 'when',
+  'where', 'which', 'who', 'why', 'will', 'with', 'you', 'your',
+]);
+
 function tokenize(query: string): string[] {
   return query
     .toLowerCase()
     .split(/[^a-z0-9_/]+/)
-    .filter((t) => t.length > 1);
+    .filter((t) => t.length > 1 && !STOP_WORDS.has(t));
 }
 
 function countOccurrences(haystack: string, needle: string): number {
@@ -148,27 +161,32 @@ export function searchDocs(query: string, options: SearchOptions = {}): SearchRe
   for (const doc of docs) {
     let titleScore = 0;
     let bodyScore = 0;
+    let pathScore = 0;
     let matched = 0;
     const titleLower = doc.title.toLowerCase();
+    const pathLower = doc.path.toLowerCase();
     for (const t of tokens) {
       const titleHits = countOccurrences(titleLower, t);
-      const bodyHits = countOccurrences(doc.searchHaystack, t) - titleHits;
-      const tokenScore = titleHits * 8 + bodyHits;
+      const pathHits = countOccurrences(pathLower, t);
+      const bodyHits = countOccurrences(doc.searchHaystack, t) - titleHits - pathHits;
+      const tokenScore = titleHits * 8 + pathHits * 12 + bodyHits;
       if (tokenScore > 0) matched++;
       titleScore += titleHits * 8;
+      pathScore += pathHits * 12;
       bodyScore += bodyHits;
     }
-    // Require every multi-token query to land at least one hit on each term;
-    // single-token queries can still match.
-    if (tokens.length > 1 && matched < tokens.length) continue;
-    const total = titleScore + bodyScore;
+    // Require at least one content-bearing token to hit. Multi-token queries
+    // no longer need every term — common-word noise was too punishing.
+    if (matched === 0) continue;
+    const total = titleScore + pathScore + bodyScore;
     if (total === 0) continue;
 
     // Normalize body hits by sqrt(body length / 1KB) so an integration doc
     // 10x longer than an API resource page doesn't automatically outrank it
-    // for a generic term. Title hits are not normalized — they're high-signal.
+    // for a generic term. Title and path hits are not normalized — they're
+    // high-signal direct identifiers.
     const bodyKb = Math.max(1, doc.body.length / 1000);
-    const score = titleScore + bodyScore / Math.sqrt(bodyKb);
+    const score = titleScore + pathScore + bodyScore / Math.sqrt(bodyKb);
 
     scored.push({
       path: doc.path,
