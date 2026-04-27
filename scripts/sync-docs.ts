@@ -26,6 +26,11 @@ const HUB_ROOT = resolve(REPO_ROOT, '../../dntly-developer-hub/git-repo');
 const HUB_CORPUS = join(HUB_ROOT, 'docs', 'markdown');
 const LOCAL_DOCS = join(REPO_ROOT, 'docs');
 
+// Only copy from these subdirectories — anything else (like a top-level
+// README.md that's meant for human readers of the dev-hub repo) would crash
+// the MCP loader's category inference at boot.
+const CORPUS_DIRS = ['api', 'form', 'components', 'integrations'];
+
 function copyTree(src: string, dst: string): number {
   let count = 0;
   for (const entry of readdirSync(src)) {
@@ -57,8 +62,19 @@ function main() {
   rmSync(LOCAL_DOCS, { recursive: true, force: true });
   mkdirSync(LOCAL_DOCS, { recursive: true });
 
-  const count = copyTree(HUB_CORPUS, LOCAL_DOCS);
-  console.log(`[sync-docs] copied ${count} markdown file(s) from ${HUB_CORPUS} → ${LOCAL_DOCS}`);
+  let total = 0;
+  for (const dir of CORPUS_DIRS) {
+    const src = join(HUB_CORPUS, dir);
+    try {
+      statSync(src);
+    } catch {
+      continue;
+    }
+    const dst = join(LOCAL_DOCS, dir);
+    mkdirSync(dst, { recursive: true });
+    total += copyTree(src, dst);
+  }
+  console.log(`[sync-docs] copied ${total} markdown file(s) from ${HUB_CORPUS} → ${LOCAL_DOCS}`);
 }
 
 main();

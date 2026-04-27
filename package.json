@@ -1,6 +1,6 @@
 {
   "name": "@donately/mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Donately MCP server — wraps the public developer documentation as an MCP toolset for AI assistants (Claude, Cursor, etc.)",
   "type": "module",
   "license": "MIT",
