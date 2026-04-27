@@ -1,20 +1,49 @@
 {
-  "name": "dntly-mcp",
+  "name": "@donately/mcp",
   "version": "0.1.0",
   "description": "Donately MCP server — wraps the public developer documentation as an MCP toolset for AI assistants (Claude, Cursor, etc.)",
-  "private": true,
   "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/donately/dntly-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/donately/dntly-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/donately/dntly-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "donately",
+    "fundraising",
+    "claude",
+    "cursor"
+  ],
   "engines": {
     "node": ">=20"
   },
+  "bin": {
+    "donately-mcp": "dist/server.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/server.js",
     "start": "node dist/server-http.js",
     "start:stdio": "node dist/server.js",
     "dev": "tsx watch src/server-http.ts",
     "dev:stdio": "tsx watch src/server.ts",
     "convert-docs": "tsx scripts/convert-html-docs.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

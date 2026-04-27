@@ -1,9 +1,13 @@
+#!/usr/bin/env node
 /**
  * Stdio entrypoint for dntly-mcp.
  *
  * Used by IDEs and Claude Desktop, which spawn the server as a subprocess and
  * speak JSON-RPC over stdin/stdout. Tool definitions live in `mcp.ts` so the
  * HTTP entrypoint shares them.
+ *
+ * The shebang is preserved through `tsc` so `dist/server.js` is the executable
+ * the npm `bin` field points at — `npx @donately/mcp` runs this.
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
