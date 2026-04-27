@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main, production]
+  pull_request:
+    branches: [main, production]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: always() && github.event_name == 'push'
+
+    steps:
+    - name: Resolve commit info
+      env:
+        COMMIT_MSG_RAW: ${{ github.event.head_commit.message }}
+      run: |
+        echo "CI_COMMIT_MSG=$(echo "$COMMIT_MSG_RAW" | head -1)" >> $GITHUB_ENV
+
+    - name: Notify Slack
+      run: |
+        JSON_PAYLOAD=$(jq -n \
+          --arg repo "dntly-mcp" \
+          --arg status "${{ needs.test.result }}" \
+          --arg env "${{ github.ref_name }}" \
+          --arg msg "$CI_COMMIT_MSG" \
+          --arg sha "${{ github.event.head_commit.id }}" \
+          --arg url "${{ github.event.head_commit.url }}" \
+          --arg who "${{ github.event.head_commit.author.username }}" \
+          '{repo: $repo, status: $status, environment: $env, commit_message: $msg, commit_sha: $sha, commit_url: $url, committer: $who}')
+        curl -sf -X POST ${{ secrets.DNTLY_SLACK_URL }}/webhooks/ci-notify \
+          -H "X-CI-Secret: ${{ secrets.CI_NOTIFY_SECRET }}" \
+          -H "Content-Type: application/json" \
+          -d "$JSON_PAYLOAD"
+
+  # When Railway (or wherever this is hosted) starts auto-deploying on
+  # main/production pushes, copy the `deploy_notify` job from
+  # dntly-ai-chat/.github/workflows/ci.yml — it threads "deployed" messages
+  # under the CI message via deploy_status=success. Omitted now so we don't
+  # send a misleading "deployed" ping for a repo that isn't actually deployed.
