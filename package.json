@@ -9,18 +9,22 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js",
+    "start": "node dist/server-http.js",
+    "start:stdio": "node dist/server.js",
+    "dev": "tsx watch src/server-http.ts",
+    "dev:stdio": "tsx watch src/server.ts",
     "convert-docs": "tsx scripts/convert-html-docs.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "express": "^5.0.0",
     "gray-matter": "^4.0.3",
     "zod": "^4.3.0"
   },
   "devDependencies": {
     "@joplin/turndown-plugin-gfm": "^1.0.64",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
     "cheerio": "^1.0.0",
     "tsx": "^4.19.0",
