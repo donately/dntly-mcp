@@ -38,7 +38,7 @@ app.get('/', (_req, res) => {
       '',
       `Loaded docs: ${docs.length}`,
       '',
-      'See https://developer.donately.com for the canonical docs and',
+      'See https://developer.donate.ly for the canonical docs and',
       'https://github.com/donately/dntly-mcp for source + install instructions.',
     ].join('\n')
   );

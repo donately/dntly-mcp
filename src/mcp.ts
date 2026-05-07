@@ -9,7 +9,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { searchDocs, getDoc, listDocs, type Doc } from './docs.js';
 
-const HUB_BASE_URL = 'https://developer.donately.com';
+const HUB_BASE_URL = 'https://developer.donate.ly';
 
 /** Build the canonical dev-hub URL for a given doc, so callers can deep-link. */
 function hubUrl(doc: Pick<Doc, 'source' | 'anchor'>): string {
