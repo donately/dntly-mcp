@@ -16,6 +16,42 @@ The integration connects via OAuth. Once connected, syncs are triggered automati
 -   **Opportunity** — Each donation, including recurring subscription details
 -   **Campaign** — Donations can be associated with a Salesforce Campaign (optional)
 
+## Connecting
+
+Donately connects to Salesforce via OAuth. The user who completes the OAuth flow becomes the *connected user* — the identity Donately authenticates as for every subsequent API call.
+
+**Salesforce's move from Connected Apps to External Client Apps:** nothing is required in your org. Donately authenticates through its own OAuth application using the authorization code and refresh token flows, both of which Salesforce carries forward to External Client Apps unchanged. The flows Salesforce is retiring (device, username-password, user-agent, and hybrid user-agent) are not used by this integration, and no Donately app is installed in your Salesforce org for you to migrate. When Donately moves its own application to the new framework, connected organizations will be asked to reconnect once. We will give notice in the Donately dashboard beforehand, and because Salesforce is not switching off anything the current connection depends on, reconnecting will not be time-sensitive.
+
+### Required Salesforce permissions
+
+The permissions the connected user needs depend on whether Donately is setting up a fresh Salesforce org or syncing to one where the `dntly_*` custom fields already exist.
+
+**First-time connection (creates custom fields)**
+
+The first time you connect an account, Donately creates a set of custom fields on Contact, Account, Opportunity, and Campaign (`dntly_PersonId__c`, `dntly_AccountId__c`, `dntly_Currency__c`, `dntly_Metadata__c`, and others — see [Field Mapping](#field-mapping)). Creating custom fields requires the Salesforce Metadata / Tooling API, which in turn requires an elevated profile.
+
+For the initial connection the connected user needs:
+
+-   **Modify Metadata Through Metadata API Functions** — required to create custom fields via the Tooling API
+-   **Customize Application** — required to grant field-level access to the new fields
+-   Read / Create / Edit on Contact, Account, Opportunity, Campaign, and Campaign Member
+
+The simplest option is to connect once with a **System Administrator** user. A custom profile with the permissions above also works.
+
+**Ongoing sync (fields already exist)**
+
+Once the custom fields exist, sync writes are standard REST operations (`POST` / `PATCH`) against Contact, Account, and Opportunity, plus SOQL reads against those objects and User / Campaign. The Metadata API is no longer needed.
+
+An **API-only user** with the following minimum access is sufficient:
+
+-   Read / Create / Edit on Contact, Account, Opportunity, Campaign, and Campaign Member
+-   Read on User (needed to resolve the *Record owner* by email or ID)
+-   Read / Edit access on the `dntly_*` custom fields on each of the objects above
+
+**Switching to an API-only user after setup**
+
+If you connected initially with an admin and want to switch to an API-only user for day-to-day syncing, you can re-authorize from the integration's Configure page without disrupting the mapping — the custom fields stay in place. Use the API-only user's Salesforce credentials when the OAuth screen prompts for login. From that point on all records Donately creates are owned by (and written by) the API-only user, unless you have set a *Record owner* override.
+
 ## Configuration
 
 These settings are configured per Donately account and control how records are created and linked in Salesforce.
@@ -247,6 +283,32 @@ Instead of a Donately field name, the value side of a mapping entry can use a he
   }
 }
 ```
+
+#### Example: Donor-Pays-Fees Meta Variables
+
+When the donor-pays-fees toggle is enabled on a form and a donor opts to cover the transaction fees, the form automatically attaches two values to the donation's `meta_data`:
+
+| Meta key | Value | Notes |
+| --- | --- | --- |
+| `base-amount` | Original donation amount **in cents**, before fees | Integer (e.g. `2500` for a $25.00 base donation) |
+| `donor-pays-fees` | Fee amount **in cents** the donor opted to cover | Integer (e.g. `108` for $1.08 in covered fees) |
+
+The Opportunity's `Amount` field already reflects the total charged (base + fees). These two meta variables let you store the breakdown in dedicated custom fields on the Opportunity so you can report on the base donation versus the fees the donor covered.
+
+```json
+{
+  "Donation": {
+    "donation.meta_data['base-amount']":     "Base_Amount_Cents__c",
+    "donation.meta_data['donor-pays-fees']": "Donor_Covered_Fees_Cents__c"
+  }
+}
+```
+
+A few things to note:
+
+-   The keys contain **hyphens, not underscores** (`base-amount`, `donor-pays-fees`) — they must be quoted exactly as shown or the lookup will return `nil`.
+-   Values are integers in cents. If your Salesforce field expects dollars, divide by 100 in a Salesforce formula field rather than doing the math in the mapping.
+-   Both keys are only present when the donor actually toggled donor-pays-fees on. For donations where the toggle was off (or not shown), these `meta_data` keys are absent and the mapping writes `nil` — which clears the field on update. Pair with the `|` fallback operator if you want a default.
 
 #### Available Donately Fields
 
