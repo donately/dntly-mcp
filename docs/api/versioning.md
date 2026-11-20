@@ -13,7 +13,7 @@ Donately-Version: 2022-12-15
 
 If no version header is sent, the API defaults to **2019-03-15**. We recommend explicitly setting the version header in all requests.
 
-v2019-03-15 (legacy) v2022-12-15 (latest)
+v2019-03-15 (legacy) v2022-12-15 (recommended)
 
 ### v2019-03-15
 
@@ -27,7 +27,7 @@ This version is stable and widely used. All endpoints documented below are avail
 
 ### v2022-12-15
 
-The latest API version with improvements to response formats and additional capabilities. All v2019-03-15 endpoints remain available.
+The recommended version for integrations, with improvements to response formats and additional capabilities. All v2019-03-15 endpoints remain available.
 
 ### What changed
 
@@ -35,8 +35,9 @@ The latest API version with improvements to response formats and additional capa
 -   **Request IDs** — Every response includes a `request_id` field for debugging and support
 -   **Improved error format** — Error responses now include `type`, `message`, `code`, and `request_id`
 -   **Native integration support** — Accounts include native integration configuration (Salesforce, HubSpot, Mailchimp, etc.)
--   **Enhanced webhook payloads** — Webhook event payloads include richer data and consistent formatting
 -   **Subscription improvements** — Additional fields for payment method details and retry status on subscriptions
 -   **Donation metadata** — Expanded `meta_data` support on donations with custom field tracking
 
 To use this version, include `Donately-Version: 2022-12-15` in every request. The endpoint paths and parameters are the same as v2019-03-15.
+
+Webhook payloads are versioned separately from API responses. A webhook created on 2022-12-15 delivers the 2021-11-15 payload format. See [Webhooks](webhooks.md).
